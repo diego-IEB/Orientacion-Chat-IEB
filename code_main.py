@@ -1,27 +1,23 @@
 import openai
-import os
+from config import key as openai_api_key
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 import tiktoken
 
-print("Directorio de trabajo actual:", os.getcwd())
-
-# Usar os.getenv para obtener la clave API desde la variable de entorno
-openai_api_key = os.getenv('OPENAI_API_KEY')
-
-if openai_api_key is None:
-    raise ValueError("No se encontró la clave API de OpenAI. Asegúrate de haber configurado la variable de entorno correctamente.")
-else:
-    openai.api_key = openai_api_key
-
+# Configuración de la clave API de OpenAI
+openai.api_key = openai_api_key
 
 def indice_loader(indice):
-    embeddings = OpenAIEmbeddings()
+    # Pasar la clave API directamente a OpenAIEmbeddings
+    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
     global faiss_index
     faiss_index = FAISS.load_local(indice, embeddings)
 
-indice = "index" #info_index_ieb2
+indice = "index"
 indice_loader(indice)
+
+# El resto del código...
+
 
 
 

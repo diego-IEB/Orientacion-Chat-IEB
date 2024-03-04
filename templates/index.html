@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+</head>
+<body>
+    <h2>Chatea con el Bot de Orientación Profesional</h2>
+    <div id="chatbox">
+        {% for message in conversation %}
+            <div class="{{ message.role }}">
+                {{ message.content }}
+            </div>
+        {% endfor %}
+    </div>
+    <form action="/get-response" method="post">
+        <input type="text" name="user_input" id="user_input" placeholder="Escribe tu mensaje aquí...">
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>
+
