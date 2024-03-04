@@ -24,7 +24,7 @@ jobs:
       - name: Create and start virtual environment
         run: |
           python -m venv venv
-          source env/bin/activate
+          source venv/bin/activate
 
       - name: Set up dependency caching for faster installs
         uses: actions/cache@v3
