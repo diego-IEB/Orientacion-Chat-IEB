@@ -23,7 +23,7 @@ jobs:
 
       - name: Create and start virtual environment
         run: |
-          python -m env env
+          python -m venv venv
           source env/bin/activate
 
       - name: Set up dependency caching for faster installs
@@ -45,7 +45,7 @@ jobs:
           name: python-app
           path: |
             .
-            !env/
+            !venv/
   deploy:
     runs-on: ubuntu-latest
     needs: build
