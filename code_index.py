@@ -1,13 +1,17 @@
-import config
+#import config
 import openai
 import os
 import io
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configuración de la clave API de OpenAI
-openai.api_key = config.key
+#openai.api_key = config.key
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def document_indexing(documento, indice):
     try:

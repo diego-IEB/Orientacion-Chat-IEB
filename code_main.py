@@ -1,15 +1,22 @@
 import openai
-from config import key as openai_api_key
+
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 import tiktoken
+import os #para la variable de entorno de azure
+# from config import key as openai_api_key en caso de config.py
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configuración de la clave API de OpenAI
-openai.api_key = openai_api_key
+# openai.api_key = openai_api_key Esta es en caso de usar config.py
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def indice_loader(indice):
     # Pasar la clave API directamente a OpenAIEmbeddings
-    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+    embeddings = OpenAIEmbeddings()
     global faiss_index
     faiss_index = FAISS.load_local(indice, embeddings)
 

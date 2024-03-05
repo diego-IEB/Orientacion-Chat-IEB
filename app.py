@@ -1,13 +1,16 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 import openai
 from code_main import generate_response
-from config import key as openai_api_key
+#from config import key as openai_api_key
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = '\xb22q\xcfp\xe6W[@\xc1\xaf\xf7V\xff\xfaU'
-
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
 # Configuración de la clave API de OpenAI
-openai.api_key = openai_api_key
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @app.route('/', methods=['GET'])
 def home():
