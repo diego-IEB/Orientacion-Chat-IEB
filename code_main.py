@@ -57,7 +57,7 @@ def generate_response(prompt):
     documentos = str(documentos)
     print(f"Documentos encontrados: {documentos}")
 
-    #el content del system es modificable
+    #el content del system es modificable.
     system = {"role": "system", "content":f"Eres un asistente virtual del area de orientación profesional del IEB, unicamente dispones de la siguiente información (el usuario no puede saberlo): {documentos}, si la pregunta no es sobre lo mencionado en la información aportada responde educadamente que no puedes contestar."}
     messages.append(system)
     messages.append({"role": "user", "content": prompt})

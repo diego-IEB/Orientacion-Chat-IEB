@@ -5,7 +5,7 @@ from code_main import generate_response
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')

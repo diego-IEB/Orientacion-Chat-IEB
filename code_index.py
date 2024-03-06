@@ -6,7 +6,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
 from dotenv import load_dotenv
-
+ 
 load_dotenv()
 
 # Configuración de la clave API de OpenAI
