@@ -90,19 +90,19 @@ def generate_response(prompt):
 
 
 
-user_input = input()
-output = generate_response(user_input)
-past.append(user_input)
-generated.append(output)
+#user_input = input()
+#output = generate_response(user_input)
+#past.append(user_input)
+#generated.append(output)
 
 
-past.append(user_input)
-generated.append(output)
+#past.append(user_input)
+#generated.append(output)
 
-if generated:
-    for i in range(len(generated)):
-        print(past[i])
-        print(generated[i])
+#if generated:
+#    for i in range(len(generated)):
+ #       print(past[i])
+  #      print(generated[i])
 
 
 
