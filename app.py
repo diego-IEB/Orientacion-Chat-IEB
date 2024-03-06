@@ -38,7 +38,9 @@ def show_session():
     return str(session)
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    port = os.getenv('PORT', default=8000)
+    app.run(host='0.0.0.0', port=port)
+
 
 
 
