@@ -2,17 +2,54 @@
 <html>
 <head>
     <title>Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles4.css') }}?v=1">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Limpia el chat si es una nueva sesión de navegador
+            if (!sessionStorage.getItem('chatStarted')) {
+                $('#chatbox').empty(); // Limpia el chatbox
+                sessionStorage.setItem('chatStarted', true);
+            }
+
+            // Limpia el chat si ha pasado más de una hora desde la última visita
+            var lastVisitTime = localStorage.getItem('lastVisitTime');
+            var currentTime = new Date().getTime();
+
+            if (lastVisitTime === null || currentTime - lastVisitTime > 3600000) { // 3600000 milisegundos = 1 hora
+                $('#chatbox').empty(); // Limpia el chatbox
+                localStorage.setItem('lastVisitTime', currentTime);
+            }
+
+            $('#message-form').submit(function(e) {
+                e.preventDefault();
+                var userInput = $('#user_input').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/get-response',
+                    data: { user_input: userInput },
+                    success: function(response) {
+                        $('#chatbox').append(response);
+                        $('#user_input').val('');
+                        $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
+                    },
+                    error: function(error) {
+                        console.error('Error al enviar mensaje:', error);
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <h2>Chatea con el Bot de Orientación Profesional</h2>
     <div id="chatbox">
+        <!-- Los mensajes cargados inicialmente no se mostrarán si el chatbox se limpia con sessionStorage o localStorage -->
         {% for message in conversation %}
-            <div class="{{ message.role }}">
-                {{ message.content }}
-            </div>
+            <div class="message {{ message.role }}">{{ message.content | safe }}</div>
         {% endfor %}
     </div>
-    <form action="/get-response" method="post">
+    <form id="message-form" method="post">
         <input type="text" name="user_input" id="user_input" placeholder="Escribe tu mensaje aquí...">
         <button type="submit">Enviar</button>
     </form>
