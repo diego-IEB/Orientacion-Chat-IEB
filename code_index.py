@@ -9,21 +9,21 @@ from dotenv import load_dotenv
  
 load_dotenv()
 
-# Configuración de la clave API de OpenAI
+#Configuración de la clave API de OpenAI
 #openai.api_key = config.key
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def document_indexing(documento, indice):
     try:
-        print(f"Intentando cargar el documento: {documento}.txt")
+        print(f"Intentando cargar el documento: {documento}.txt") 
         with io.open(f"{documento}.txt", 'r', encoding='utf-8') as file:
             text = file.read()
         print("Documento cargado. Procesando páginas...")
 
-        pages = text.split('\n\n')
-        documents = [Document(page_content=page) for page in pages]
+        pages = text.split('\n\n') #por los saltos de página de info.txt
+        documents = [Document(page_content=page) for page in pages] #Realiza la separación del documento en objetos "Document", de cada una de las páginas.
 
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings() #se crea una instancia de OpenAIEmbeddings para generar embeddings de texto de las páginas de texto.
         faiss_index = FAISS.from_documents(documents, embeddings)
         faiss_index.save_local(indice)
         print("Indexación completada correctamente.")

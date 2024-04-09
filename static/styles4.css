@@ -10,6 +10,15 @@ h2 {
     color: #333; /* Un gris oscuro para el texto, para buena legibilidad */
 }
 
+#logo-universidad {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 150px; /* Ajustar este valor según sea necesario */
+    height: auto;
+    z-index: 10;
+}
+
 #chatbox {
     max-height: 400px;
     overflow-y: scroll;
