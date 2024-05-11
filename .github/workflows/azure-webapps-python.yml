@@ -75,5 +75,9 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@85270a1854658d167ab239bce43949edb336fa7c
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+            app-name: ${{ env.AZURE_WEBAPP_NAME }}
+            subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           #publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
