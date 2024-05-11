@@ -1,62 +1,112 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
-from code_main import generate_response
-import os
-import openai
+from datetime import datetime, timedelta
+from sqlalchemy.exc import OperationalError  # Importar directamente la excepción
+from code_main import generate_response, check_relevance, is_question_result
+import os, uuid  # Importa uuid aquí
+from flask_migrate import Migrate
+import logging
+from logging.handlers import RotatingFileHandler
+import nltk
+from shared import db, Conversation, update_tema_entrevista
 
-load_dotenv() 
+nltk.download('punkt')  # Descargar los recursos necesarios
+app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///conversation.db'
+base_dir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario_chatbot:IEB_2024@localhost/chatbot_db'
 
-app = Flask(__name__) #Se crea una instancia de Flask para la aplicación web.
-app.secret_key = os.getenv('FLASK_SECRET_KEY') #Se establece una clave secreta para la aplicación Flask, utilizada para mantener sesiones seguras.
 
-openai.api_key = os.getenv('OPENAI_API_KEY') #Se configura la clave API de OpenAI.
+# Configuración básica de logging
+logging.basicConfig(level=logging.DEBUG)
+# Handler de logging para escribir a un archivo con rotación
+handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=3)
+handler.setLevel(logging.INFO)
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.DEBUG)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///conversation.db' #Se configura la URI de la base de datos para SQLAlchemy, especificando que se usará SQLite y el nombre del archivo de la base de datos.
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-class Conversation(db.Model): #Se define el Modelo "Conversation" para almacenar los mensajes de la conversación en la bbdd
-    id = db.Column(db.Integer, primary_key=True) #Campo de la bbdd: Id del mensaje
-    role = db.Column(db.String(10)) #Campo de la bbdd: rol del mensaje como bot o usuario
-    content = db.Column(db.Text) #Campo de la bbdd: contenido del mensaje
 
-try:
-    with app.app_context():
-        db.create_all() #Creación de las tablas de la bbdd.
-except Exception as e:
-    print("Error durante la inicialización de la base de datos:", e)
+class Conversation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(36))  # UUID tiene 36 caracteres
+    role = db.Column(db.String(10))
+    is_question = db.Column(db.Boolean, default=False)  # Nuevo campo para representar si es una pregunta
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    tema_entrevista = db.Column(db.Text) 
 
-tema_conversacion = None
+with app.app_context():
+    app.logger.info("Intentando crear tablas...")
+    db.create_all()
+    app.logger.info("Intento de creación de tablas finalizado.")
 
 @app.route('/', methods=['GET'])
-def home(): #función home que se muestra cada vez que el usuario haga una  pregunta o solicitud a la ruta raiz "/".
-    conversation = Conversation.query.all() #consulta a la tabla Conversation de SQLAlchemy y alamcenamiento de todas las entradas
-    return render_template('index.html', conversation=conversation) #se pide a la app de Flask que renderice la plantilla html: index.html, pasando y mostrando dinámicamente el contenido de la variable conversación. 
+def home():
+    session['chat_session_id'] = str(uuid.uuid4())  # Reinicia la sesión de chat
+    return render_template('index.html', conversation=[])
+
 
 @app.route('/get-response', methods=['POST'])
-def get_bot_response(): #función get_bot_response procesa las solicitudes POST recibidas en /get-response. Toma el input del usuario, genera una respuesta y devuelve la respuesta en formato html.
+def get_bot_response():
     try:
-        global tema_conversacion #para mantener un contexto en la conversación, la variable tema_conversacion va variando según los inputs recibidos.
-        user_input = request.form['user_input'] #extrae el mensaje introducido por el usuario
-        bot_response, tema_conversacion = generate_response(user_input, tema_conversacion) #pasamos el mensaje del usuario y el mensaje del usuario a la funcion generate_response y ésta retorna una respuesta.
+        current_time = datetime.utcnow()
+        chat_session_id = session.get('chat_session_id', str(uuid.uuid4()))
+        session['chat_session_id'] = chat_session_id  # Asegurarse de que cada sesión tiene un UUID
 
-        user_message = Conversation(role='user', content=user_input) #instancia del modelo Conversation para el mensaje del usuario
-        bot_message = Conversation(role='bot', content=bot_response) #instancia del modelo conversatio para el mensaje del bot.
+        if 'message_count' not in session:
+            session['message_count'] = 0 
 
+        if 'start_time' not in session or 'prompt_count' not in session:
+            session['start_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+            session['prompt_count'] = 0
+
+        start_time = datetime.strptime(session['start_time'], '%Y-%m-%d %H:%M:%S.%f')
+        if (current_time - start_time) > timedelta(minutes=10):
+            session['start_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')
+            session['prompt_count'] = 0
+        if session['prompt_count'] >= 15:
+            return "Has alcanzado el límite de preguntas permitidas por sesión."
+    
+        user_input = request.form['user_input']
+        prompt = user_input
+
+        print("Prompt que se enviará a OpenAI:", prompt)
+
+        bot_response, is_question_flag, tema_conversacion = generate_response(prompt, None)
+        tema_entrevista = update_tema_entrevista(bot_response)  # Asumiendo que ahora update_tema_entrevista toma directamente el texto del bot
+        is_question_result_flag = is_question_result(bot_response)  # Utiliza la función is_question que implementaste
+        user_message = Conversation(session_id=chat_session_id, role='user', content=user_input)
+        bot_message = Conversation(session_id=chat_session_id, role='bot', content=bot_response, is_question=is_question_flag)
+    
+        
         db.session.add(user_message)
         db.session.add(bot_message)
-        db.session.commit() #Se guardan ambas instancias en la bbdd.
 
-        response_html = f"""
-            <div class='message user'>{user_input}</div>
-            <div class='message bot'>{bot_response}</div>
-        """
-        return response_html #devuelve los string de html tanto del usuario como del bot, formateados para la visualización.
-    except Exception as e: #manejo de errores
-        print("Error al obtener respuesta del bot:", e)
-        return "Error al obtener respuesta del bot."
+        db.session.commit()  # Committing at once here
 
-if __name__ == "__main__":
-    port = int(os.getenv('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+        session['message_count'] += 1
+        session['prompt_count'] += 1
 
+        response_html = f"<div class='message user'>{user_input}</div><div class='message bot'>{bot_response}</div>"
+        return jsonify({'html': response_html})
+
+    except OperationalError as e:
+        app.logger.error("Database lock encountered, retrying...")
+        db.session.rollback()
+        return jsonify({'error': 'Internal server error'}), 500
+    except Exception as e:
+        app.logger.error(f'Error al procesar la solicitud: {str(e)}')
+        db.session.rollback()
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/history', methods=['GET'])
+def history():
+    # Filtrar conversaciones por ID de sesión para enviar solo las relevantes
+    chat_session_id = session.get('chat_session_id')
+    conversation = Conversation.query.filter_by(session_id=chat_session_id).all()
+    return render_template('history.html', conversation=conversation)

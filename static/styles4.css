@@ -1,75 +1,143 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4; /* Este es un gris claro, similar al de la imagen */
+    padding: 0;
+    padding-top: 80px; /* Aumenta según la altura que esperes necesitar */
+    background-color: #f4f4f4;
 }
-
 h2 {
     text-align: center;
-    color: #333; /* Un gris oscuro para el texto, para buena legibilidad */
+    color: #333; /* Color gris oscuro para el texto */
+}
+#chatbox, textarea{
+    font-family: Arial, sans-serif; /* Establece la fuente Arial para ambos elementos */
+    font-size: 12px; /* O el tamaño que prefieras */
+    color: #333; /* Color de texto gris oscuro */
+    }
+
+header {
+    width: 100%;
+    padding: 10px 20px;  /* Ajusta el padding si es necesario */
+    background-color: #f4f4f4; /* Mismo color de fondo que el body */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }
 
-#logo-universidad {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    width: 150px; /* Ajustar este valor según sea necesario */
-    height: auto;
+#toggle-history {
+    background-color: #0056b3; /* Mantiene el color azul para visibilidad */
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
     z-index: 10;
 }
 
-#chatbox {
-    max-height: 400px;
-    overflow-y: scroll;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    background-color: #fff; /* Fondo blanco para el chatbox */
+#chat-title, #disclaimer {
+    color: #333; /* Color gris oscuro para el texto */
+    padding: 0 20px; /* Agrega padding si es necesario */
 }
 
+
+header img {
+    max-width: 150px; /* Ajusta este valor según sea necesario */
+    height: auto; /* Altura automática para mantener la proporción */
+}
+
+
+#chatbox {
+    max-height: 300px; /* Reduce la altura máxima si es necesario */
+    overflow-y: auto; /* Asegúrate de que el scroll interno funcione */
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f4f4f4;
+    width: 60%;
+    margin: 20px auto; /* Ajusta el margen para centrar y dar espacio */
+}
 .message {
+    white-space: pre-wrap;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ddd; /* Bordes sutiles para cada mensaje */
+    border: none;
+}
+
+.list-item {
+    margin-bottom: 7px;
+}
+
+p {
+    margin-bottom: 10px;
+}
+
+strong {
+    font-weight: bold;
 }
 
 .user {
-    background-color: #e1ecf4; /* Un azul claro basado en la imagen */
-    text-align: left;
-    color: #333; /* Texto oscuro para contraste */
-}
-
-.bot {
-    background-color: #f8f8f8; /* Un gris muy claro para los mensajes del bot */
+    background-color: #e1ecf4; /* Azul claro para mensajes del usuario */
     text-align: left;
     color: #333;
 }
 
-form {
+.bot {
+    background-color: #f8f8f8; /* Gris muy claro para mensajes del bot */
+    text-align: left;
+    color: #333;
+}
+
+form#message-form {
+    width: 60%; /* Aseguramos que el formulario tenga el mismo ancho que #chatbox */
+    margin-left: auto;
+    margin-right: auto; /* Centrado horizontal */
     text-align: center;
-    margin-top: 20px;
 }
 
 input[type="text"] {
-    width: 70%;
+    width: calc(100% - 120px); /* Ajustamos el ancho del input restando el espacio del botón */
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    color: #333; /* Texto oscuro en el input */
+    color: #333;
 }
 
 button {
-    padding: 10px 20px;
+    box-sizing: border-box; 
+    width: 60px;  // Tamaño fijo del ancho
+    height: 60px;  // Tamaño fijo del alto
+    padding: 0px 20px;
     border: none;
-    background-color: #d2b48c; /* Un color tostado para el botón, inspirado en la imagen */
+    background-color: #d2b48c; /* Color tostado para el botón */
     color: white;
     border-radius: 5px;
     cursor: pointer;
+    flex-shrink: 0; /* Asegura que el botón no cambie de tamaño */
+    margin-left: 10px;  // Espacio entre el textarea y el botón
 }
 
 button:hover {
-    background-color: #a98c68; /* Un tono tostado más oscuro para el hover */
+    background-color: #a98c68; /* Tostado más oscuro para el efecto hover */
+}
+
+textarea {
+    flex-grow: 1; /* Permite que el textarea crezca para llenar el espacio */
+    min-height: 30px; /* Altura mínima inicial */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none; /* Deshabilitar el redimensionamiento manual */
+    overflow-y: hidden; /* Ocultar scrollbar interno */
+    box-sizing: border-box; /* Incluir padding y border en el ancho total */
+}
+
+.input-container {
+    display: flex;
+    align-items: flex-start; /* Cambia stretch a flex-start para evitar estiramiento */
+    width: 100%; /* Asegúrate de que el contenedor toma el 100% del ancho disponible */
+    margin: 0 auto; /* Centrado horizontal */
 }

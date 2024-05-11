@@ -1,60 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles4.css') }}?v=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot de Orientación Profesional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles4.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Limpia el chat si es una nueva sesión de navegador
-            if (!sessionStorage.getItem('chatStarted')) {
-                $('#chatbox').empty(); // Limpia el chatbox
-                sessionStorage.setItem('chatStarted', true);
-            }
-
-            // Limpia el chat si ha pasado más de una hora desde la última visita
-            var lastVisitTime = localStorage.getItem('lastVisitTime');
-            var currentTime = new Date().getTime();
-
-            if (lastVisitTime === null || currentTime - lastVisitTime > 3600000) { // 3600000 milisegundos = 1 hora
-                $('#chatbox').empty(); // Limpia el chatbox
-                localStorage.setItem('lastVisitTime', currentTime);
-            }
-
-            $('#message-form').submit(function(e) {
-                e.preventDefault();
-                var userInput = $('#user_input').val();
-                $.ajax({
-                    type: 'POST',
-                    url: '/get-response',
-                    data: { user_input: userInput },
-                    success: function(response) {
-                        $('#chatbox').append(response);
-                        $('#user_input').val('');
-                        $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
-                    },
-                    error: function(error) {
-                        console.error('Error al enviar mensaje:', error);
-                    }
-                });
+    $(document).ready(function() {
+        $('#message-form').submit(function(event) {
+            event.preventDefault();
+            var userInput = $('#user_input').val();
+            $.post('/get-response', {user_input: userInput}, function(data) {
+                $('#chatbox').append(data.html);
+                $('#user_input').val('');
+                $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
             });
         });
+
+        $('#toggle-history').click(function() {
+            $('#history').toggle();
+        });
+    });
     </script>
 </head>
 <body>
-    <img src="{{ url_for('static', filename='images/Logo_IEB_2020_azul.png') }}" id="logo-universidad" alt="Logo de la Universidad">
-    
-    <h2>Chatea con el Bot de Orientación Profesional</h2>
-    <div id="chatbox">
-        <!-- Los mensajes cargados inicialmente no se mostrarán si el chatbox se limpia con sessionStorage o localStorage -->
-        {% for message in conversation %}
-            <div class="message {{ message.role }}">{{ message.content | safe }}</div>
-        {% endfor %}
-    </div>
-    <form id="message-form" method="post">
-        <input type="text" name="user_input" id="user_input" placeholder="Escribe tu mensaje aquí...">
-        <button type="submit">Enviar</button>
+    <header>
+        <img src="{{ url_for('static', filename='images/Logo_IEB_2020_azul.png') }}" alt="Logo de la Universidad">
+        <button id="toggle-history">Ver/Ocultar Historial</button>
+    </header>
+    <h2 id="chat-title" style="text-align: center; margin-top: 20px;">Chatea con el Bot de Orientación Profesional</h2>
+    <p id="disclaimer" style="text-align: center;">Este chatbot es solo para uso informativo...</p>
+    <div id="chatbox"></div>
+    <div id="history"></div>
+    <form id="message-form">
+        <div class="input-container">
+            <textarea id="user_input" placeholder="Escribe tu mensaje aquí..." rows="1"></textarea>
+            <button type="submit">Enviar</button>
+        </div>
     </form>
+    
+    <script>
+        $(document).ready(function() {
+            var textarea = $('#user_input');
+        
+            // Evento para ajustar la altura del textarea automáticamente
+            textarea.on('input', function() {
+                this.style.height = 'auto';  // Restablece la altura
+                this.style.height = (this.scrollHeight) + 'px';  // Ajusta la altura basada en el contenido
+            });
+        
+            // Evento para enviar el formulario con la tecla Enter, sin insertar saltos de línea
+            textarea.on('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Previene la creación de una nueva línea
+                    $('#message-form').submit(); // Envía el formulario
+                }
+            });
+        });
+        
+        </script>  
+    
 </body>
+    
 </html>
-
