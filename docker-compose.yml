@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: chatbot_db
+      POSTGRES_USER: usuario_chatbot
+      POSTGRES_PASSWORD: IEB_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SQLALCHEMY_DATABASE_URI: 'postgresql://usuario_chatbot:IEB_2024@db/chatbot_db'
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

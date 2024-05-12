@@ -9,13 +9,16 @@ import logging
 from logging.handlers import RotatingFileHandler
 import nltk
 from shared import db, Conversation, update_tema_entrevista
+from dotenv import load_dotenv
+load_dotenv() 
 
 nltk.download('punkt')  # Descargar los recursos necesarios
 app = Flask(__name__)
+app.run(host='0.0.0.0', port=8000)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///conversation.db'
 base_dir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario_chatbot:IEB_2024@localhost/chatbot_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://usuario_chatbot@ChatIEBPostgres:IEB_2024@ChatIEBPostgres.postgres.database.azure.com/chatbot_db?sslmode=require'
 
 
 # Configuración básica de logging
